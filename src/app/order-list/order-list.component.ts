@@ -1,14 +1,17 @@
-import { CurrencyPipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-order-list',
   standalone: true,
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, CommonModule, ReactiveFormsModule],
   templateUrl: './order-list.component.html',
   styleUrl: './order-list.component.css'
 })
 export class OrderListComponent {
+  router: Router = inject(Router);
   getStatusBadgeClass(status?: string): string {
     switch (status) {
       case 'confirmed':
@@ -20,5 +23,8 @@ export class OrderListComponent {
       default:
         return 'badge bg-secondary';
     }
+  }
+  goForm() {
+    this.router.navigate(['create-booking']);
   }
 }

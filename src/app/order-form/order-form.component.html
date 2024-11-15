@@ -1,11 +1,13 @@
+
 <div class="container mt-4">
+    <button (click)="goLista()"> Formulario</button>
     <div class="row">
       <div class="col">
         <h2>Crear Nueva Reserva</h2>
       </div>
     </div>
   
-    <form class="mt-4">
+    <form [formGroup]= "bookingform"class="mt-4" (submit)="onSubmit()">
       <!-- Datos de la Empresa -->
       <div class="card mb-4">
         <div class="card-header bg-primary text-white">
@@ -14,17 +16,26 @@
         <div class="card-body">
           <div class="mb-3">
             <label class="form-label required">Nombre de la Empresa</label>
-            <input type="text" class="form-control" placeholder="Ingrese el nombre de la empresa">
+            <input formControlName="companyName" type="text" class="form-control" placeholder="Ingrese el nombre de la empresa" >
           </div>
   
           <div class="mb-3">
             <label class="form-label required">Email Corporativo</label>
-            <input type="email" class="form-control" placeholder="ejemplo@empresa.com">
+            <input formControlName="companyEmail" type="email" class="form-control" placeholder="ejemplo@empresa.com">
+            @if( bookingform.get('companyEmail')?.invalid && bookingform.get('companyEmail')?.touched){
+              @if( bookingform.get('companyEmail')?.errors?.['email']){
+                <small class="text-danger">El email debe estar en el formato adecuado</small>
+              }
+              @if( bookingform.get('companyEmail')?.errors?.['required']){
+                <small class="text-danger">El email es obligatorio</small>
+              }
+            }
+            
           </div>
   
           <div class="mb-3">
             <label class="form-label required">Teléfono de Contacto</label>
-            <input type="tel" class="form-control" placeholder="+54 11 1234-5678">
+            <input formControlName="contactPhone" type="tel" class="form-control" placeholder="+54 11 1234-5678">
           </div>
         </div>
       </div>
@@ -37,8 +48,11 @@
         <div class="card-body">
           <div class="mb-3">
             <label class="form-label required">Lugar del Evento</label>
-            <select class="form-select">
-              <!-- Opciones de lugar aquí -->
+            <select formControlName="venueId" class="form-select">
+              @for(venue of venues; track $index)
+              {
+                <option [value]="venue.id">{{venue.name}}</option>
+              }
             </select>
           </div>
   
@@ -46,48 +60,50 @@
             <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label required">Fecha</label>
-                <input type="date" class="form-control">
+                <input formControlName="eventDate" type="date" class="form-control">
               </div>
             </div>
             <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label required">Hora de Inicio</label>
-                <input type="time" class="form-control">
+                <input formControlName="startTime" type="time" class="form-control">
               </div>
             </div>
             <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label required">Hora de Finalización</label>
-                <input type="time" class="form-control">
+                <input formControlName="endTime" type="time" class="form-control">
               </div>
             </div>
           </div>
   
           <div class="mb-3">
             <label class="form-label required">Cantidad Total de Personas</label>
-            <input type="number" class="form-control">
+            <input formControlName="totalPeople" type="number" class="form-control">
           </div>
         </div>
       </div>
   
       <!-- Servicios Adicionales -->
-      <div class="card mb-4">
+      <div formArrayName="services" class="card mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h3 class="h5 mb-0">Servicios Adicionales</h3>
-          <button type="button" class="btn btn-light btn-sm">
+          <button type="button" class="btn btn-light btn-sm" (click)="addServices()">
             + Agregar Servicio
           </button>
         </div>
-        <div class="card-body">
+        <div *ngFor="let serviceForm of services.controls; let i = index" [formGroupName]="i" class="card-body">
           <!-- Estructura de servicios adicionales -->
           <div class="border rounded p-3 mb-3 position-relative">
-            <button type="button" class="btn-close position-absolute top-0 end-0 m-2"></button>
+            <button (click)="removeServices(i)" type="button" class="btn-close position-absolute top-0 end-0 m-2"></button>
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label required">Tipo de Servicio</label>
-                  <select class="form-select">
-                    <!-- Opciones de servicio aquí -->
+                  <select class="form-select" formControlName="serviceId">
+                    @for(service of serviceList; track $index){
+                      <option [value]="service.id">{{service.name}}</option>
+                    }
                   </select>
                 </div>
               </div>
@@ -95,7 +111,7 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label required">Cantidad de Personas</label>
-                  <input type="number" class="form-control">
+                  <input type="number" class="form-control" formControlName="quantity">
                 </div>
               </div>
             </div>
@@ -104,20 +120,20 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label required">Hora de Inicio</label>
-                  <input type="time" class="form-control">
+                  <input type="time" class="form-control" formControlName="startTime">
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label required">Hora de Finalización</label>
-                  <input type="time" class="form-control">
+                  <input type="time" class="form-control" formControlName="endTime">
                 </div>
               </div>
             </div>
   
             <div class="text-end">
               <small class="text-muted">
-                Subtotal del servicio: $<!-- Subtotal aquí -->
+                Subtotal del servicio: $ {{totalService}}
               </small>
             </div>
           </div>
@@ -132,10 +148,10 @@
         <div class="card-body">
           <div class="row mb-2">
             <div class="col">
-              <h6>Subtotal:</h6>
+              <h6>Subtotal: </h6>
             </div>
             <div class="col-auto">
-              <h6>$ <!-- Subtotal aquí --></h6>
+              <h6>$ {{totalAmount}}</h6>
             </div>
           </div>
   
@@ -145,7 +161,7 @@
               <small>¡Descuento aplicado por grupo mayor a 100 personas!</small>
             </div>
             <div class="col-auto">
-              <h6>-$ <!-- Descuento aquí --></h6>
+              <h6>-$ {{discount}}</h6>
             </div>
           </div>
   
@@ -156,7 +172,7 @@
               <h5 class="mb-0">Total Final:</h5>
             </div>
             <div class="col-auto">
-              <h5 class="mb-0">$ <!-- Total final aquí --></h5>
+              <h5 class="mb-0">$ {{totalAmountWithDiscount}}</h5>
             </div>
           </div>
         </div>
